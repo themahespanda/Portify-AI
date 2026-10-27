@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portify AI — Interactive Builder Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(140, 140, 160, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(140, 140, 160, 0.5); }
+    
+    .tab-btn.active {
+      background-color: var(--card);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-color: var(--border);
+    }
+
+    /* Embedded Theme styles inside the preview container */
+    .preview-modern-minimal {
+      --p-bg: #ffffff;
+      --p-card: #f8fafc;
+      --p-text: #0f172a;
+      --p-muted: #64748b;
+      --p-accent: #6366f1;
+      --p-border: #e2e8f0;
+      font-family: system-ui, sans-serif;
+    }
+    .preview-developer-dark {
+      --p-bg: #0d1117;
+      --p-card: #161b22;
+      --p-text: #f0f6fc;
+      --p-muted: #8b949e;
+      --p-accent: #58a6ff;
+      --p-border: #30363d;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .preview-creative-gradient {
+      --p-bg: #0b0f19;
+      --p-card: rgba(30, 41, 59, 0.7);
+      --p-text: #f8fafc;
+      --p-muted: #94a3b8;
+      --p-accent: #a855f7;
+      --p-border: rgba(148, 163, 184, 0.2);
+      font-family: system-ui, sans-serif;
+    }
+    .preview-professional-corporate {
+      --p-bg: #f8fafc;
+      --p-card: #ffffff;
+      --p-text: #0f172a;
+      --p-muted: #475569;
+      --p-accent: #0284c7;
+      --p-border: #cbd5e1;
+      font-family: Georgia, Cambria, serif;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen flex flex-col m-0 p-0">
+  
+  <!-- Top App Navigation Bar -->
+  <header class="border-b border-[var(--border)] bg-[var(--card)] px-5 py-3 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-black text-lg shadow-sm">
+        P
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base tracking-tight">Portify AI</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium border border-emerald-500/20">
+            Interactive Dashboard
+          </span>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)]">Resume-to-Portfolio Website Generator Engine</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="downloadStandaloneFile()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Export HTML</span>
+      </button>
+      <button onclick="switchTab('preview')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--card)] transition-colors">
+        Live Preview
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Grid Layout -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-60 border-r border-[var(--border)] bg-[var(--card)] flex flex-col justify-between p-3 flex-shrink-0">
+      <div class="space-y-1">
+        <!-- Candidate badge -->
+        <div class="p-3 rounded-xl bg-[var(--background)] border border-[var(--border)] mb-3">
+          <h4 id="sidebarName" class="font-bold text-xs truncate">Alex Morgan</h4>
+          <p id="sidebarTitle" class="text-xs text-[var(--muted-foreground)] truncate">Staff Full-Stack Engineer</p>
+          <div class="mt-2.5">
+            <div class="flex justify-between text-xs font-semibold text-[var(--muted-foreground)] mb-1">
+              <span>Readiness</span>
+              <span id="strengthPct" class="text-indigo-600">95%</span>
+            </div>
+            <div class="w-full h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+              <div id="strengthBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 95%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>📊</span>
+          <span>Overview</span>
+        </button>
+
+        <button onclick="switchTab('profile')" id="tab-profile" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>👤</span>
+          <span>My Profile</span>
+        </button>
+
+        <button onclick="switchTab('sections')" id="tab-sections" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>📑</span>
+          <span>Sections &amp; Order</span>
+        </button>
+
+        <button onclick="switchTab('themes')" id="tab-themes" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>🎨</span>
+          <span>Design &amp; Themes</span>
+        </button>
+
+        <button onclick="switchTab('ai-studio')" id="tab-ai-studio" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>✨</span>
+          <span>AI Content Studio</span>
+        </button>
+
+        <button onclick="switchTab('preview')" id="tab-preview" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>👁️</span>
+          <span>Live Preview</span>
+        </button>
+
+        <button onclick="switchTab('export')" id="tab-export" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors">
+          <span>💾</span>
+          <span>Export &amp; Publish</span>
+        </button>
+      </div>
+
+      <div class="p-2 border-t border-[var(--border)] text-center text-xs text-[var(--muted-foreground)]">
+        Portify AI &bull; Demo Active
+      </div>
+    </aside>
+
+    <!-- Content Workspace -->
+    <main class="flex-1 overflow-y-auto p-6 bg-[var(--background)]">
+      
+      <!-- TAB 1: OVERVIEW -->
+      <section id="content-overview" class="space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h2 class="text-xl font-bold">Dashboard Overview</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Live metrics, candidate portfolio status, and quick shortcuts.</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+            <span class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1">Profile Strength</span>
+            <span class="text-2xl font-black text-indigo-600">95%</span>
+            <span class="text-xs text-[var(--muted-foreground)] block mt-0.5">Verified resume points</span>
+          </div>
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+            <span class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1">Skills Indexed</span>
+            <span id="skillCountStat" class="text-2xl font-black text-[var(--foreground)]">16</span>
+            <span class="text-xs text-[var(--muted-foreground)] block mt-0.5">Categorized tech tags</span>
+          </div>
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+            <span class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1">Featured Projects</span>
+            <span id="projectCountStat" class="text-2xl font-black text-[var(--foreground)]">3</span>
+            <span class="text-xs text-[var(--muted-foreground)] block mt-0.5">With live code repos</span>
+          </div>
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+            <span class="text-xs font-semibold text-[var(--muted-foreground)] block mb-1">Active Theme</span>
+            <span id="currentThemeName" class="text-sm font-bold text-[var(--foreground)] block truncate capitalize">Developer Dark</span>
+            <button onclick="switchTab('themes')" class="text-xs text-indigo-600 hover:underline font-medium">Switch theme &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="p-5 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <h3 class="font-bold text-sm mb-3">Quick Navigation</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button onclick="switchTab('preview')" class="p-3.5 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-indigo-500 text-left transition-all">
+              <span class="text-base block mb-1">👁️</span>
+              <div class="font-bold text-xs">Open Live Preview</div>
+              <div class="text-xs text-[var(--muted-foreground)]">Test desktop &amp; mobile responsive layout</div>
+            </button>
+            <button onclick="switchTab('ai-studio')" class="p-3.5 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-indigo-500 text-left transition-all">
+              <span class="text-base block mb-1">✨</span>
+              <div class="font-bold text-xs">AI Studio Polish</div>
+              <div class="text-xs text-[var(--muted-foreground)]">Regenerate headlines and bio summaries</div>
+            </button>
+            <button onclick="downloadStandaloneFile()" class="p-3.5 rounded-lg border border-[var(--border)] bg-[var(--background)] hover:border-indigo-500 text-left transition-all">
+              <span class="text-base block mb-1">💾</span>
+              <div class="font-bold text-xs">Download Standalone Website</div>
+              <div class="text-xs text-[var(--muted-foreground)]">Save 1-click self-contained HTML file</div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: PROFILE EDITOR -->
+      <section id="content-profile" class="space-y-5 max-w-3xl mx-auto hidden">
+        <div>
+          <h2 class="text-xl font-bold">Edit Profile Details</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Update candidate information. Updates appear instantly in live preview.</p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold mb-1">Full Name</label>
+              <input id="inpName" oninput="updateProfileField('name', this.value)" type="text" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs text-[var(--foreground)]" value="Alex Morgan">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Professional Title</label>
+              <input id="inpTitle" oninput="updateProfileField('title', this.value)" type="text" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs text-[var(--foreground)]" value="Staff Full-Stack Engineer & System Architect">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Email Address</label>
+              <input id="inpEmail" oninput="updateProfileField('email', this.value)" type="email" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs text-[var(--foreground)]" value="alex.morgan.dev@example.com">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Location</label>
+              <input id="inpLocation" oninput="updateProfileField('location', this.value)" type="text" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs text-[var(--foreground)]" value="San Francisco, CA">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Professional Summary</label>
+            <textarea id="inpSummary" oninput="updateProfileField('summary', this.value)" rows="4" class="w-full p-3 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs leading-relaxed text-[var(--foreground)]">Staff Full-Stack Engineer with 8+ years of experience leading cross-functional teams and building high-throughput cloud applications serving over 5 million daily active users. Expert in TypeScript, React, Node.js, Python, distributed systems, and modern DevOps pipelines.</textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SECTIONS & ORDER -->
+      <section id="content-sections" class="space-y-5 max-w-3xl mx-auto hidden">
+        <div>
+          <h2 class="text-xl font-bold">Portfolio Sections &amp; Hierarchy</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Enable or disable sections, or reorder their position.</p>
+        </div>
+
+        <div id="sectionsList" class="bg-[var(--card)] rounded-xl border border-[var(--border)] divide-y divide-[var(--border)]">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </section>
+
+      <!-- TAB 4: DESIGN & THEMES -->
+      <section id="content-themes" class="space-y-5 max-w-3xl mx-auto hidden">
+        <div>
+          <h2 class="text-xl font-bold">Choose Portfolio Theme</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Switch between 4 distinctive themes without altering portfolio content.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Theme 1 -->
+          <div onclick="selectTheme('modern-minimal')" id="theme-card-modern-minimal" class="p-4 rounded-xl border-2 cursor-pointer transition-all border-[var(--border)] bg-[var(--card)] hover:border-indigo-500">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="font-bold text-xs">1. Modern Minimal</h4>
+              <span id="badge-modern-minimal" class="hidden text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-semibold">Active</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mb-3">Clean white canvas, crisp sans-serif typography, generous whitespace.</p>
+            <div class="h-16 rounded-lg bg-slate-50 border border-slate-200 p-2 flex flex-col justify-center space-y-1">
+              <div class="w-1/2 h-2 bg-slate-800 rounded"></div>
+              <div class="w-3/4 h-1.5 bg-slate-400 rounded"></div>
+            </div>
+          </div>
+
+          <!-- Theme 2 -->
+          <div onclick="selectTheme('developer-dark')" id="theme-card-developer-dark" class="p-4 rounded-xl border-2 cursor-pointer transition-all border-indigo-600 ring-2 ring-indigo-500/20 bg-[var(--card)]">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="font-bold text-xs">2. Developer Dark</h4>
+              <span id="badge-developer-dark" class="text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-semibold">Active</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mb-3">Code aesthetic, monospace font, dark palette with emerald &amp; blue badges.</p>
+            <div class="h-16 rounded-lg bg-[#0d1117] border border-slate-700 p-2 flex flex-col justify-center space-y-1 font-mono">
+              <div class="w-1/2 h-2 bg-emerald-400 rounded"></div>
+              <div class="w-3/4 h-1.5 bg-slate-600 rounded"></div>
+            </div>
+          </div>
+
+          <!-- Theme 3 -->
+          <div onclick="selectTheme('creative-gradient')" id="theme-card-creative-gradient" class="p-4 rounded-xl border-2 cursor-pointer transition-all border-[var(--border)] bg-[var(--card)] hover:border-indigo-500">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="font-bold text-xs">3. Creative Gradient</h4>
+              <span id="badge-creative-gradient" class="hidden text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-semibold">Active</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mb-3">Vibrant gradient titles, glassmorphic cards, expressive typography.</p>
+            <div class="h-16 rounded-lg bg-[#0b0f19] border border-slate-700 p-2 flex flex-col justify-center space-y-1">
+              <div class="w-1/2 h-2 bg-gradient-to-r from-purple-400 to-cyan-400 rounded"></div>
+              <div class="w-3/4 h-1.5 bg-slate-600 rounded"></div>
+            </div>
+          </div>
+
+          <!-- Theme 4 -->
+          <div onclick="selectTheme('professional-corporate')" id="theme-card-professional-corporate" class="p-4 rounded-xl border-2 cursor-pointer transition-all border-[var(--border)] bg-[var(--card)] hover:border-indigo-500">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="font-bold text-xs">4. Professional Corporate</h4>
+              <span id="badge-professional-corporate" class="hidden text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-semibold">Active</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mb-3">Structured executive layout, navy tones, classic serif headlines.</p>
+            <div class="h-16 rounded-lg bg-slate-100 border border-slate-300 p-2 flex flex-col justify-center space-y-1">
+              <div class="w-1/2 h-2 bg-sky-900 rounded"></div>
+              <div class="w-3/4 h-1.5 bg-slate-500 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: AI CONTENT STUDIO -->
+      <section id="content-ai-studio" class="space-y-5 max-w-3xl mx-auto hidden">
+        <div>
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <span>✨</span>
+            <span>AI Content Studio</span>
+          </h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Synthesize recruiter-appealing wording while keeping 100% of the verified facts.</p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xs">Hero Headline</h3>
+            <button onclick="aiPolishHeadline()" class="px-3 py-1 rounded text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+              AI Polish Headline
+            </button>
+          </div>
+          <input id="aiHeadlineInput" type="text" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs font-semibold" value="Staff Full-Stack Engineer specializing in TypeScript, React, Next.js">
+
+          <div class="flex items-center justify-between pt-2">
+            <h3 class="font-bold text-xs">Hero Tagline</h3>
+            <button onclick="aiPolishTagline()" class="px-3 py-1 rounded text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+              AI Polish Tagline
+            </button>
+          </div>
+          <input id="aiTaglineInput" type="text" class="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-xs" value="Driven staff software architect dedicated to building high-performance, maintainable platforms.">
+        </div>
+      </section>
+
+      <!-- TAB 6: LIVE PREVIEW -->
+      <section id="content-preview" class="space-y-4 max-w-4xl mx-auto hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold">Live Portfolio Preview</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Changes in profile, sections, and themes reflect below immediately.</p>
+          </div>
+          <!-- Viewport Mode Toggle -->
+          <div class="flex items-center gap-1 p-1 bg-[var(--card)] rounded-lg border border-[var(--border)]">
+            <button onclick="setViewport('desktop')" id="vp-desktop" class="px-2.5 py-1 rounded text-xs font-semibold bg-indigo-600 text-white">Desktop</button>
+            <button onclick="setViewport('tablet')" id="vp-tablet" class="px-2.5 py-1 rounded text-xs font-semibold text-[var(--muted-foreground)]">Tablet</button>
+            <button onclick="setViewport('mobile')" id="vp-mobile" class="px-2.5 py-1 rounded text-xs font-semibold text-[var(--muted-foreground)]">Mobile</button>
+          </div>
+        </div>
+
+        <!-- Embedded Simulated Preview Canvas -->
+        <div class="flex justify-center">
+          <div id="previewContainer" class="w-full transition-all duration-300 rounded-2xl border shadow-lg overflow-hidden preview-developer-dark" style="background-color: var(--p-bg); color: var(--p-text); border-color: var(--p-border);">
+            
+            <!-- Browser Bar -->
+            <div class="px-4 py-2 border-b flex items-center justify-between text-xs" style="border-color: var(--p-border); background: var(--p-card);">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              </div>
+              <span class="text-[11px] opacity-60">portfolio.local</span>
+              <div class="w-6"></div>
+            </div>
+
+            <!-- Portfolio Body Content -->
+            <div class="p-6 sm:p-8 space-y-8">
+              <!-- Hero -->
+              <div id="prev-sec-hero">
+                <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3" style="background: rgba(88,166,255,0.15); color: var(--p-accent);">
+                  Available for opportunities
+                </div>
+                <h1 id="prevHeadline" class="text-2xl sm:text-3xl font-extrabold mb-2">Staff Full-Stack Engineer & System Architect</h1>
+                <p id="prevTagline" class="text-xs sm:text-sm opacity-75 max-w-xl mb-4">Driven staff software architect dedicated to building high-performance, maintainable platforms.</p>
+                <div class="flex gap-2">
+                  <span class="px-3 py-1.5 rounded text-xs font-bold text-white bg-indigo-600">Contact Me</span>
+                  <span class="px-3 py-1.5 rounded text-xs font-bold border" style="border-color: var(--p-border);">View Work</span>
+                </div>
+              </div>
+
+              <!-- About -->
+              <div id="prev-sec-about" class="pt-4 border-t" style="border-color: var(--p-border);">
+                <h3 class="text-sm font-bold uppercase tracking-wider mb-2">About Me</h3>
+                <p id="prevSummary" class="text-xs leading-relaxed opacity-80">
+                  Staff Full-Stack Engineer with 8+ years of experience leading cross-functional teams and building high-throughput cloud applications serving over 5 million daily active users.
+                </p>
+              </div>
+
+              <!-- Skills -->
+              <div id="prev-sec-skills" class="pt-4 border-t" style="border-color: var(--p-border);">
+                <h3 class="text-sm font-bold uppercase tracking-wider mb-3">Skills &amp; Expertise</h3>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">TypeScript</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">React</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">FastAPI</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">PostgreSQL</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">Docker</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">Kubernetes</span>
+                  <span class="px-2 py-0.5 text-xs rounded border" style="border-color: var(--p-border); background: var(--p-card);">AWS</span>
+                </div>
+              </div>
+
+              <!-- Projects -->
+              <div id="prev-sec-projects" class="pt-4 border-t" style="border-color: var(--p-border);">
+                <h3 class="text-sm font-bold uppercase tracking-wider mb-3">Featured Projects</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-3.5 rounded-xl border" style="border-color: var(--p-border); background: var(--p-card);">
+                    <h4 class="font-bold text-xs mb-1">PulseDB — Distributed Time-Series Engine</h4>
+                    <p class="text-xs opacity-75 mb-2">In-memory caching engine written in Go with sub-millisecond retrieval.</p>
+                    <span class="text-[11px] font-mono" style="color: var(--p-accent);">GitHub &nearr; 2.1k stars</span>
+                  </div>
+                  <div class="p-3.5 rounded-xl border" style="border-color: var(--p-border); background: var(--p-card);">
+                    <h4 class="font-bold text-xs mb-1">KanbanFlow Enterprise</h4>
+                    <p class="text-xs opacity-75 mb-2">Real-time collaborative workspace with conflict-free offline resolution.</p>
+                    <span class="text-[11px] font-mono" style="color: var(--p-accent);">Live Demo &nearr;</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact -->
+              <div id="prev-sec-contact" class="pt-4 border-t text-center" style="border-color: var(--p-border);">
+                <h3 class="text-sm font-bold mb-1">Get in Touch</h3>
+                <p id="prevContactEmail" class="text-xs font-semibold" style="color: var(--p-accent);">alex.morgan.dev@example.com</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: EXPORT & PUBLISH -->
+      <section id="content-export" class="space-y-5 max-w-3xl mx-auto hidden">
+        <div>
+          <h2 class="text-xl font-bold">Export Website</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Download pure standalone HTML/CSS/JS with zero runtime dependencies.</p>
+        </div>
+
+        <div class="p-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-sm mb-1">Download Standalone HTML Portfolio</h3>
+            <p class="text-xs opacity-90">Single self-contained file with embedded styles and interactive scripts.</p>
+          </div>
+          <button onclick="downloadStandaloneFile()" class="px-5 py-2.5 rounded-lg text-xs font-bold bg-white text-indigo-600 hover:bg-slate-100 transition-colors shadow-sm whitespace-nowrap">
+            Download portfolio.html
+          </button>
+        </div>
+
+        <div class="p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] space-y-3">
+          <h3 class="font-bold text-xs">Deployment Options (Free Hosting)</h3>
+          <div class="text-xs space-y-2 text-[var(--muted-foreground)]">
+            <p><strong>GitHub Pages:</strong> Upload <code class="px-1 py-0.5 rounded bg-[var(--background)]">portfolio.html</code> (rename to <code class="px-1 py-0.5 rounded bg-[var(--background)]">index.html</code>) to your GitHub repository and activate Pages in settings.</p>
+            <p><strong>Netlify:</strong> Drag and drop the file onto <a href="https://app.netlify.com/drop" target="_blank" class="text-indigo-600 underline">app.netlify.com/drop</a> for instant HTTPS hosting.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // State management
+    const state = {
+      name: "Alex Morgan",
+      title: "Staff Full-Stack Engineer & System Architect",
+      email: "alex.morgan.dev@example.com",
+      location: "San Francisco, CA",
+      summary: "Staff Full-Stack Engineer with 8+ years of experience leading cross-functional teams and building high-throughput cloud applications serving over 5 million daily active users. Expert in TypeScript, React, Node.js, Python, distributed systems, and modern DevOps pipelines.",
+      headline: "Staff Full-Stack Engineer specializing in TypeScript, React, Next.js",
+      tagline: "Driven staff software architect dedicated to building high-performance, maintainable platforms.",
+      theme: "developer-dark",
+      sections: [
+        { id: "hero", name: "Hero Banner", enabled: true },
+        { id: "about", name: "About Me", enabled: true },
+        { id: "skills", name: "Skills & Expertise", enabled: true },
+        { id: "projects", name: "Featured Projects", enabled: true },
+        { id: "contact", name: "Contact Section", enabled: true }
+      ]
+    };
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const tabs = ['overview', 'profile', 'sections', 'themes', 'ai-studio', 'preview', 'export'];
+      tabs.forEach(t => {
+        const el = document.getElementById('content-' + t);
+        if (el) el.classList.toggle('hidden', t !== tabId);
+      });
+    }
+
+    function renderSectionsList() {
+      const listEl = document.getElementById('sectionsList');
+      if (!listEl) return;
+      listEl.innerHTML = state.sections.map((sec, idx) => `
+        <div class="p-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded bg-[var(--background)] border border-[var(--border)] text-xs flex items-center justify-center font-bold text-[var(--muted-foreground)]">
+              ${idx + 1}
+            </span>
+            <span class="text-xs font-bold">${sec.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="moveSection(${idx}, 'up')" ${idx === 0 ? 'disabled class="opacity-30 p-1"' : 'class="p-1 text-xs hover:text-indigo-600"'}>&uarr;</button>
+            <button onclick="moveSection(${idx}, 'down')" ${idx === state.sections.length - 1 ? 'disabled class="opacity-30 p-1"' : 'class="p-1 text-xs hover:text-indigo-600"'}>&darr;</button>
+            <input type="checkbox" ${sec.enabled ? 'checked' : ''} onchange="toggleSection('${sec.id}')" class="rounded cursor-pointer">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleSection(secId) {
+      const target = state.sections.find(s => s.id === secId);
+      if (target) {
+        target.enabled = !target.enabled;
+        const prevEl = document.getElementById('prev-sec-' + secId);
+        if (prevEl) prevEl.style.display = target.enabled ? 'block' : 'none';
+        renderSectionsList();
+      }
+    }
+
+    function moveSection(idx, dir) {
+      const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= state.sections.length) return;
+      const tmp = state.sections[idx];
+      state.sections[idx] = state.sections[targetIdx];
+      state.sections[targetIdx] = tmp;
+      renderSectionsList();
+    }
+
+    function updateProfileField(field, val) {
+      state[field] = val;
+      if (field === 'name') {
+        document.getElementById('sidebarName').textContent = val;
+      } else if (field === 'title') {
+        document.getElementById('sidebarTitle').textContent = val;
+        document.getElementById('prevHeadline').textContent = val;
+      } else if (field === 'summary') {
+        document.getElementById('prevSummary').textContent = val;
+      } else if (field === 'email') {
+        document.getElementById('prevContactEmail').textContent = val;
+      }
+    }
+
+    function selectTheme(themeId) {
+      state.theme = themeId;
+      const themes = ['modern-minimal', 'developer-dark', 'creative-gradient', 'professional-corporate'];
+      themes.forEach(t => {
+        const card = document.getElementById('theme-card-' + t);
+        const badge = document.getElementById('badge-' + t);
+        if (card) {
+          card.classList.toggle('border-indigo-600', t === themeId);
+          card.classList.toggle('ring-2', t === themeId);
+        }
+        if (badge) badge.classList.toggle('hidden', t !== themeId);
+      });
+
+      document.getElementById('currentThemeName').textContent = themeId.replace('-', ' ');
+      
+      const prev = document.getElementById('previewContainer');
+      if (prev) {
+        prev.className = `w-full transition-all duration-300 rounded-2xl border shadow-lg overflow-hidden preview-${themeId}`;
+      }
+    }
+
+    function aiPolishHeadline() {
+      const options = [
+        "Staff Full-Stack Engineer | Distributed Systems & High-Throughput Cloud Architect",
+        "Staff Systems Architect — Scaling High-Performance Web & Cloud Infrastructures",
+        "Principal Developer & Cloud Architect | TypeScript, React, Python, Distributed Systems"
+      ];
+      const random = options[Math.floor(Math.random() * options.length)];
+      state.headline = random;
+      document.getElementById('aiHeadlineInput').value = random;
+      document.getElementById('prevHeadline').textContent = random;
+    }
+
+    function aiPolishTagline() {
+      const options = [
+        "Architecting resilient cloud platforms that process billions of events with sub-millisecond latency.",
+        "Transforming complex infrastructure challenges into elegant, developer-friendly digital experiences.",
+        "Balancing software craftsmanship, robust distributed architecture, and user delight."
+      ];
+      const random = options[Math.floor(Math.random() * options.length)];
+      state.tagline = random;
+      document.getElementById('aiTaglineInput').value = random;
+      document.getElementById('prevTagline').textContent = random;
+    }
+
+    function setViewport(mode) {
+      const cont = document.getElementById('previewContainer');
+      ['desktop', 'tablet', 'mobile'].forEach(m => {
+        const btn = document.getElementById('vp-' + m);
+        if (btn) {
+          btn.className = m === mode ? 'px-2.5 py-1 rounded text-xs font-semibold bg-indigo-600 text-white' : 'px-2.5 py-1 rounded text-xs font-semibold text-[var(--muted-foreground)]';
+        }
+      });
+      if (mode === 'mobile') {
+        cont.style.maxWidth = '375px';
+      } else if (mode === 'tablet') {
+        cont.style.maxWidth = '768px';
+      } else {
+        cont.style.maxWidth = '100%';
+      }
+    }
+
+    function downloadStandaloneFile() {
+      // Direct download of the generated portfolio HTML
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.name} — Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      body { background: #0d1117; color: #f0f6fc; font-family: 'JetBrains Mono', monospace; padding: 2rem; margin: 0; }
+      .container { max-width: 800px; margin: 0 auto; }
+      .badge { display: inline-block; padding: 0.25rem 0.75rem; background: rgba(88,166,255,0.15); color: #58a6ff; border-radius: 9999px; font-size: 0.8rem; margin-bottom: 1rem; }
+      h1 { font-size: 2.25rem; margin-bottom: 0.5rem; }
+      p.tagline { color: #8b949e; font-size: 1.1rem; line-height: 1.6; }
+      .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="badge">Available for opportunities</span>
+        <h1>${state.name}</h1>
+        <h3>${state.title}</h3>
+        <p class="tagline">${state.tagline}</p>
+        <div class="card">
+            <h3>About</h3>
+            <p>${state.summary}</p>
+        </div>
+        <div class="card">
+            <h3>Contact</h3>
+            <p>Email: <a href="mailto:${state.email}" style="color: #58a6ff;">${state.email}</a></p>
+        </div>
+    </div>
+</body>
+</html>`;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "portfolio.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize
+    renderSectionsList();
+  </script>
+</body>
+</html>
