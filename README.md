@@ -1,3 +1,8 @@
+# Portify AI
+### AI-Powered Resume-to-Portfolio Website Generator
+
+[![🚀 Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Visit_Portify_AI-6D28D9?style=for-the-badge)](https://themahespanda.github.io/Portify-AI/)
+
 # Portify AI — Resume-to-Portfolio Website Generator
 
 Portify AI is a full-stack, AI-powered web application that converts static PDF and DOCX resumes into polished, customizable, and recruiter-ready personal portfolio websites.
